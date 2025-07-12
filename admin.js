@@ -217,7 +217,16 @@ class AdminPanel {
         document.getElementById('testBtn').addEventListener('click', () => this.testConfiguration());
 
         // Preview modal
-        document.getElementById('previewBtn').addEventListener('click', () => this.showPreview());
+        const previewBtn = document.getElementById('previewBtn');
+        if (previewBtn) {
+            previewBtn.addEventListener('click', () => {
+                console.log('Preview button clicked');
+                this.showPreview();
+            });
+            console.log('Preview button event listener attached');
+        } else {
+            console.error('Preview button not found!');
+        }
 
         // Help modal
         document.getElementById('helpBtn').addEventListener('click', () => this.showHelpModal());
@@ -962,14 +971,23 @@ const CONFIG = {
     }
 
     showPreview() {
+        console.log('showPreview method called');
         this.updateConfigFromForm();
         const config = this.currentConfig;
+        console.log('Current config:', config);
 
         // Update modal preview content with correct IDs
         const modalTitle = document.getElementById('modalPreviewTitle');
         const modalDescription = document.getElementById('modalPreviewDescription');
         const modalUrl = document.getElementById('modalPreviewUrl');
         const modalImg = document.getElementById('modalPreviewImg');
+
+        console.log('Modal elements found:', {
+            title: !!modalTitle,
+            description: !!modalDescription,
+            url: !!modalUrl,
+            img: !!modalImg
+        });
 
         if (modalTitle) {
             modalTitle.textContent = config.OG_TITLE || 'No title';
