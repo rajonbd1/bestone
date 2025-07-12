@@ -101,12 +101,14 @@ class AdminPanel {
             // Load profiles and update preview
             this.loadProfiles();
             this.updateConfigPreview();
-            this.updateAllPreviews();
 
-            this.isInitialized = true;
-            this.hideLoadingOverlay();
-
-            this.showToast('Admin panel loaded successfully!', 'success');
+            // Small delay to ensure DOM is ready
+            setTimeout(() => {
+                this.updateAllPreviews();
+                this.isInitialized = true;
+                this.hideLoadingOverlay();
+                this.showToast('Admin panel loaded successfully!', 'success');
+            }, 100);
         } catch (error) {
             console.error('Error initializing admin panel:', error);
             this.hideLoadingOverlay();
@@ -640,9 +642,6 @@ class AdminPanel {
     }
 
     updateAllPreviews() {
-        if (!this.isInitialized) return;
-
-        console.log('Updating all previews with config:', this.currentConfig);
         this.updatePreviewCard('facebook');
         this.updatePreviewCard('twitter');
         this.updatePreviewCard('linkedin');
@@ -652,24 +651,10 @@ class AdminPanel {
         const config = this.currentConfig;
         const suffix = platform === 'facebook' ? 'Fb' : platform === 'twitter' ? 'Tw' : 'Li';
 
-        console.log(`Updating ${platform} preview with:`, {
-            title: config.OG_TITLE,
-            description: config.OG_DESCRIPTION,
-            image: config.OG_IMAGE_URL,
-            url: config.OG_URL
-        });
-
         const titleElement = document.getElementById(`previewTitle${suffix}`);
         const descElement = document.getElementById(`previewDescription${suffix}`);
         const urlElement = document.getElementById(`previewUrl${suffix}`);
         const imgElement = document.getElementById(`previewImg${suffix}`);
-
-        console.log(`Elements found for ${platform}:`, {
-            title: !!titleElement,
-            desc: !!descElement,
-            url: !!urlElement,
-            img: !!imgElement
-        });
 
         if (titleElement) {
             titleElement.textContent = config.OG_TITLE || 'Your Title Here';
@@ -708,51 +693,84 @@ class AdminPanel {
     }
 
     loadConfiguration() {
-        // Load from localStorage if available
+        // Start with default configuration
+        this.currentConfig = this.getDefaultConfig();
+
+        // Load from localStorage if available and merge with defaults
         const saved = localStorage.getItem('redirectPageConfig');
         if (saved) {
             try {
-                this.currentConfig = { ...this.getDefaultConfig(), ...JSON.parse(saved) };
+                const savedConfig = JSON.parse(saved);
+                this.currentConfig = { ...this.currentConfig, ...savedConfig };
             } catch (e) {
                 console.error('Error loading saved configuration:', e);
             }
         }
 
+        // Update form fields with the configuration
         this.updateFormFromConfig();
-        this.updateAllPreviews();
-        this.updateDelayDisplay();
+
+        // Update previews after a small delay to ensure DOM is ready
+        setTimeout(() => {
+            this.updateAllPreviews();
+            this.updateDelayDisplay();
+        }, 50);
     }
 
     updateFormFromConfig() {
         const config = this.currentConfig;
-        
+
+        console.log('Updating form from config:', config);
+
         // Basic settings
-        document.getElementById('redirectUrl').value = config.REDIRECT_URL || '';
-        document.getElementById('redirectDelay').value = (config.REDIRECT_DELAY_MS || 2000) / 1000;
-        document.getElementById('redirectMessage').value = config.REDIRECT_MESSAGE || '';
-        document.getElementById('pageTitle').value = config.PAGE_TITLE || '';
-        
+        const redirectUrl = document.getElementById('redirectUrl');
+        const redirectDelay = document.getElementById('redirectDelay');
+        const redirectMessage = document.getElementById('redirectMessage');
+        const pageTitle = document.getElementById('pageTitle');
+
+        if (redirectUrl) redirectUrl.value = config.REDIRECT_URL || '';
+        if (redirectDelay) redirectDelay.value = (config.REDIRECT_DELAY_MS || 2000) / 1000;
+        if (redirectMessage) redirectMessage.value = config.REDIRECT_MESSAGE || '';
+        if (pageTitle) pageTitle.value = config.PAGE_TITLE || '';
+
         // Social media settings
-        document.getElementById('ogTitle').value = config.OG_TITLE || '';
-        document.getElementById('ogDescription').value = config.OG_DESCRIPTION || '';
-        document.getElementById('ogImageUrl').value = config.OG_IMAGE_URL || '';
-        document.getElementById('displayImageUrl').value = config.DISPLAY_IMAGE_URL || '';
-        document.getElementById('ogUrl').value = config.OG_URL || '';
-        
+        const ogTitle = document.getElementById('ogTitle');
+        const ogDescription = document.getElementById('ogDescription');
+        const ogImageUrl = document.getElementById('ogImageUrl');
+        const displayImageUrl = document.getElementById('displayImageUrl');
+        const ogUrl = document.getElementById('ogUrl');
+
+        if (ogTitle) ogTitle.value = config.OG_TITLE || '';
+        if (ogDescription) ogDescription.value = config.OG_DESCRIPTION || '';
+        if (ogImageUrl) ogImageUrl.value = config.OG_IMAGE_URL || '';
+        if (displayImageUrl) displayImageUrl.value = config.DISPLAY_IMAGE_URL || '';
+        if (ogUrl) ogUrl.value = config.OG_URL || '';
+
         // Advanced settings
         if (config.CRAWLER_DETECTION) {
-            document.getElementById('detectFacebook').checked = config.CRAWLER_DETECTION.facebook || false;
-            document.getElementById('detectTwitter').checked = config.CRAWLER_DETECTION.twitter || false;
-            document.getElementById('detectLinkedIn').checked = config.CRAWLER_DETECTION.linkedin || false;
-            document.getElementById('detectGoogle').checked = config.CRAWLER_DETECTION.google || false;
+            const detectFacebook = document.getElementById('detectFacebook');
+            const detectTwitter = document.getElementById('detectTwitter');
+            const detectLinkedIn = document.getElementById('detectLinkedIn');
+            const detectGoogle = document.getElementById('detectGoogle');
+
+            if (detectFacebook) detectFacebook.checked = config.CRAWLER_DETECTION.facebook || false;
+            if (detectTwitter) detectTwitter.checked = config.CRAWLER_DETECTION.twitter || false;
+            if (detectLinkedIn) detectLinkedIn.checked = config.CRAWLER_DETECTION.linkedin || false;
+            if (detectGoogle) detectGoogle.checked = config.CRAWLER_DETECTION.google || false;
         }
-        
-        document.getElementById('customCss').value = config.CUSTOM_CSS || '';
-        
+
+        const customCss = document.getElementById('customCss');
+        if (customCss) customCss.value = config.CUSTOM_CSS || '';
+
         if (config.SECURITY) {
-            document.getElementById('enableHttpsOnly').checked = config.SECURITY.httpsOnly || false;
-            document.getElementById('enableReferrerPolicy').checked = config.SECURITY.strictReferrer || false;
+            const enableHttpsOnly = document.getElementById('enableHttpsOnly');
+            const enableReferrerPolicy = document.getElementById('enableReferrerPolicy');
+
+            if (enableHttpsOnly) enableHttpsOnly.checked = config.SECURITY.httpsOnly || false;
+            if (enableReferrerPolicy) enableReferrerPolicy.checked = config.SECURITY.strictReferrer || false;
         }
+
+        console.log('Form updated successfully');
     }
 
     updateConfigFromForm() {
@@ -778,8 +796,6 @@ class AdminPanel {
                 strictReferrer: document.getElementById('enableReferrerPolicy').checked
             }
         };
-
-        console.log('Updated config from form:', this.currentConfig);
     }
 
     async saveConfiguration() {
