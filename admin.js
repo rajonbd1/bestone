@@ -991,18 +991,22 @@ const CONFIG = {
 
         if (modalTitle) {
             modalTitle.textContent = config.OG_TITLE || 'No title';
+            console.log('Updated modal title to:', modalTitle.textContent);
         }
 
         if (modalDescription) {
             modalDescription.textContent = config.OG_DESCRIPTION || 'No description';
+            console.log('Updated modal description to:', modalDescription.textContent);
         }
 
         if (modalUrl) {
             try {
                 const url = new URL(config.OG_URL || 'https://yourdomain.com');
                 modalUrl.textContent = url.hostname;
+                console.log('Updated modal URL to:', modalUrl.textContent);
             } catch {
                 modalUrl.textContent = 'yourdomain.com';
+                console.log('Updated modal URL to default: yourdomain.com');
             }
         }
 
@@ -1010,13 +1014,19 @@ const CONFIG = {
             if (config.OG_IMAGE_URL && config.OG_IMAGE_URL.trim()) {
                 modalImg.src = config.OG_IMAGE_URL;
                 modalImg.style.display = 'block';
+                console.log('Updated modal image to:', config.OG_IMAGE_URL);
 
                 // Handle image load errors
                 modalImg.onerror = () => {
                     modalImg.style.display = 'none';
+                    console.log('Modal image failed to load');
+                };
+                modalImg.onload = () => {
+                    console.log('Modal image loaded successfully');
                 };
             } else {
                 modalImg.style.display = 'none';
+                console.log('No image URL provided, hiding modal image');
             }
         }
 
@@ -1025,6 +1035,9 @@ const CONFIG = {
         if (modal) {
             modal.style.display = 'flex';
             modal.classList.add('show');
+            console.log('Modal displayed successfully');
+        } else {
+            console.error('Preview modal not found!');
         }
     }
 
