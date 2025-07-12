@@ -12,14 +12,31 @@
         <header class="admin-header">
             <h1><i class="fas fa-cog"></i> Redirect Page Admin Panel</h1>
             <div class="header-actions">
+                <button id="testBtn" class="btn btn-success">
+                    <i class="fas fa-play"></i> Test Now
+                </button>
                 <button id="previewBtn" class="btn btn-secondary">
                     <i class="fas fa-eye"></i> Preview
                 </button>
                 <button id="saveBtn" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Save Configuration
+                    <i class="fas fa-save"></i> Save & Download
                 </button>
             </div>
         </header>
+
+        <!-- Important Notice -->
+        <div class="notice-banner">
+            <div class="notice-content">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>How to Apply Changes:</strong>
+                    <p>1. Click "Save & Download" to get the new config.js file</p>
+                    <p>2. Replace the config.js file in your repository</p>
+                    <p>3. Commit and push to GitHub for changes to take effect</p>
+                    <p><strong>OR</strong> Click "Test Now" to test your changes immediately!</p>
+                </div>
+            </div>
+        </div>
 
         <div class="admin-content">
             <div class="sidebar">

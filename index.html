@@ -14,8 +14,47 @@
   <meta name="twitter:image" content="" id="twitterImage" />
   <title id="pageTitle">Redirecting...</title>
   <script>
+    // Override config with URL parameters or localStorage
+    function overrideConfig() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const savedConfig = localStorage.getItem('redirectPageConfig');
+
+      // First, try to load from localStorage (from admin panel)
+      if (savedConfig) {
+        try {
+          const parsedConfig = JSON.parse(savedConfig);
+          Object.assign(CONFIG, parsedConfig);
+          console.log('Configuration loaded from admin panel settings');
+        } catch (e) {
+          console.error('Error loading saved configuration:', e);
+        }
+      }
+
+      // Then override with URL parameters for testing
+      if (urlParams.get('url')) {
+        CONFIG.REDIRECT_URL = urlParams.get('url');
+        console.log('Redirect URL overridden via URL parameter:', CONFIG.REDIRECT_URL);
+      }
+      if (urlParams.get('delay')) {
+        CONFIG.REDIRECT_DELAY_MS = parseInt(urlParams.get('delay')) * 1000;
+      }
+      if (urlParams.get('title')) {
+        CONFIG.OG_TITLE = urlParams.get('title');
+      }
+      if (urlParams.get('description')) {
+        CONFIG.OG_DESCRIPTION = urlParams.get('description');
+      }
+      if (urlParams.get('image')) {
+        CONFIG.OG_IMAGE_URL = urlParams.get('image');
+        CONFIG.DISPLAY_IMAGE_URL = urlParams.get('image');
+      }
+    }
+
     // Initialize page with configuration
     function initializePage() {
+      // Override config first
+      overrideConfig();
+
       // Set meta tags dynamically
       document.getElementById('ogTitle').setAttribute('content', CONFIG.OG_TITLE || '');
       document.getElementById('ogDescription').setAttribute('content', CONFIG.OG_DESCRIPTION || '');

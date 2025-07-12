@@ -41,22 +41,25 @@ class AdminPanel {
     setupEventListeners() {
         // Save configuration
         document.getElementById('saveBtn').addEventListener('click', () => this.saveConfiguration());
-        
+
+        // Test now functionality
+        document.getElementById('testBtn').addEventListener('click', () => this.testConfiguration());
+
         // Preview modal
         document.getElementById('previewBtn').addEventListener('click', () => this.showPreview());
         document.querySelector('.modal-close').addEventListener('click', () => this.hidePreview());
-        
+
         // Profile management
         document.getElementById('saveProfileBtn').addEventListener('click', () => this.saveProfile());
-        
+
         // Export/Import
         document.getElementById('exportConfigBtn').addEventListener('click', () => this.exportConfig());
         document.getElementById('exportJsonBtn').addEventListener('click', () => this.exportJson());
         document.getElementById('importFile').addEventListener('change', (e) => this.importConfig(e));
-        
+
         // Real-time updates
         this.setupRealTimeUpdates();
-        
+
         // Modal click outside to close
         document.getElementById('previewModal').addEventListener('click', (e) => {
             if (e.target.id === 'previewModal') {
@@ -186,19 +189,43 @@ class AdminPanel {
 
     saveConfiguration() {
         this.updateConfigFromForm();
-        
+
         // Validate configuration
         if (!this.validateConfig()) {
             return;
         }
-        
+
         // Save to localStorage
         localStorage.setItem('redirectPageConfig', JSON.stringify(this.currentConfig));
-        
+
         // Generate and save config.js file
         this.generateConfigFile();
-        
-        this.showMessage('Configuration saved successfully!', 'success');
+
+        // Auto-download the config.js file
+        this.exportConfig();
+
+        this.showMessage('Configuration saved! The config.js file has been downloaded. Please replace the existing config.js file in your repository and push the changes to GitHub.', 'success');
+    }
+
+    testConfiguration() {
+        this.updateConfigFromForm();
+
+        // Validate configuration
+        if (!this.validateConfig()) {
+            return;
+        }
+
+        // Save to localStorage so the redirect page can use it
+        localStorage.setItem('redirectPageConfig', JSON.stringify(this.currentConfig));
+
+        // Create test URL with parameters as backup
+        const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '');
+        const testUrl = `${baseUrl}?url=${encodeURIComponent(this.currentConfig.REDIRECT_URL)}&delay=${this.currentConfig.REDIRECT_DELAY_MS / 1000}`;
+
+        // Open in new tab for testing
+        window.open(testUrl, '_blank');
+
+        this.showMessage('Test page opened in new tab! The redirect page will use your current settings.', 'success');
     }
 
     validateConfig() {
