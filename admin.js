@@ -640,6 +640,9 @@ class AdminPanel {
     }
 
     updateAllPreviews() {
+        if (!this.isInitialized) return;
+
+        console.log('Updating all previews with config:', this.currentConfig);
         this.updatePreviewCard('facebook');
         this.updatePreviewCard('twitter');
         this.updatePreviewCard('linkedin');
@@ -649,10 +652,24 @@ class AdminPanel {
         const config = this.currentConfig;
         const suffix = platform === 'facebook' ? 'Fb' : platform === 'twitter' ? 'Tw' : 'Li';
 
+        console.log(`Updating ${platform} preview with:`, {
+            title: config.OG_TITLE,
+            description: config.OG_DESCRIPTION,
+            image: config.OG_IMAGE_URL,
+            url: config.OG_URL
+        });
+
         const titleElement = document.getElementById(`previewTitle${suffix}`);
         const descElement = document.getElementById(`previewDescription${suffix}`);
         const urlElement = document.getElementById(`previewUrl${suffix}`);
         const imgElement = document.getElementById(`previewImg${suffix}`);
+
+        console.log(`Elements found for ${platform}:`, {
+            title: !!titleElement,
+            desc: !!descElement,
+            url: !!urlElement,
+            img: !!imgElement
+        });
 
         if (titleElement) {
             titleElement.textContent = config.OG_TITLE || 'Your Title Here';
@@ -672,11 +689,17 @@ class AdminPanel {
         }
 
         if (imgElement) {
-            const placeholder = imgElement.nextElementSibling;
-            if (config.OG_IMAGE_URL) {
+            const placeholder = imgElement.parentElement.querySelector('.preview-placeholder');
+            if (config.OG_IMAGE_URL && config.OG_IMAGE_URL.trim()) {
                 imgElement.src = config.OG_IMAGE_URL;
                 imgElement.style.display = 'block';
                 if (placeholder) placeholder.style.display = 'none';
+
+                // Handle image load errors
+                imgElement.onerror = () => {
+                    imgElement.style.display = 'none';
+                    if (placeholder) placeholder.style.display = 'flex';
+                };
             } else {
                 imgElement.style.display = 'none';
                 if (placeholder) placeholder.style.display = 'flex';
@@ -694,8 +717,10 @@ class AdminPanel {
                 console.error('Error loading saved configuration:', e);
             }
         }
-        
+
         this.updateFormFromConfig();
+        this.updateAllPreviews();
+        this.updateDelayDisplay();
     }
 
     updateFormFromConfig() {
@@ -753,6 +778,8 @@ class AdminPanel {
                 strictReferrer: document.getElementById('enableReferrerPolicy').checked
             }
         };
+
+        console.log('Updated config from form:', this.currentConfig);
     }
 
     async saveConfiguration() {
