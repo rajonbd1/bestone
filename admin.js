@@ -962,27 +962,56 @@ const CONFIG = {
     }
 
     showPreview() {
+        this.updateConfigFromForm();
         const config = this.currentConfig;
-        
-        // Update preview content
-        document.getElementById('previewTitle').textContent = config.OG_TITLE || 'No title';
-        document.getElementById('previewDescription').textContent = config.OG_DESCRIPTION || 'No description';
-        document.getElementById('previewUrl').textContent = config.OG_URL || 'No URL';
-        
-        const previewImg = document.getElementById('previewImg');
-        if (config.OG_IMAGE_URL) {
-            previewImg.src = config.OG_IMAGE_URL;
-            previewImg.style.display = 'block';
-        } else {
-            previewImg.style.display = 'none';
+
+        // Update modal preview content with correct IDs
+        const modalTitle = document.getElementById('modalPreviewTitle');
+        const modalDescription = document.getElementById('modalPreviewDescription');
+        const modalUrl = document.getElementById('modalPreviewUrl');
+        const modalImg = document.getElementById('modalPreviewImg');
+
+        if (modalTitle) {
+            modalTitle.textContent = config.OG_TITLE || 'No title';
         }
-        
+
+        if (modalDescription) {
+            modalDescription.textContent = config.OG_DESCRIPTION || 'No description';
+        }
+
+        if (modalUrl) {
+            try {
+                const url = new URL(config.OG_URL || 'https://yourdomain.com');
+                modalUrl.textContent = url.hostname;
+            } catch {
+                modalUrl.textContent = 'yourdomain.com';
+            }
+        }
+
+        if (modalImg) {
+            if (config.OG_IMAGE_URL && config.OG_IMAGE_URL.trim()) {
+                modalImg.src = config.OG_IMAGE_URL;
+                modalImg.style.display = 'block';
+
+                // Handle image load errors
+                modalImg.onerror = () => {
+                    modalImg.style.display = 'none';
+                };
+            } else {
+                modalImg.style.display = 'none';
+            }
+        }
+
         // Show modal
-        document.getElementById('previewModal').style.display = 'block';
+        const modal = document.getElementById('previewModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+        }
     }
 
     hidePreview() {
-        document.getElementById('previewModal').style.display = 'none';
+        this.hideAllModals();
     }
 
     saveProfile() {
