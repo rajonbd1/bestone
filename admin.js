@@ -720,8 +720,6 @@ class AdminPanel {
     updateFormFromConfig() {
         const config = this.currentConfig;
 
-        console.log('Updating form from config:', config);
-
         // Basic settings
         const redirectUrl = document.getElementById('redirectUrl');
         const redirectDelay = document.getElementById('redirectDelay');
@@ -769,8 +767,6 @@ class AdminPanel {
             if (enableHttpsOnly) enableHttpsOnly.checked = config.SECURITY.httpsOnly || false;
             if (enableReferrerPolicy) enableReferrerPolicy.checked = config.SECURITY.strictReferrer || false;
         }
-
-        console.log('Form updated successfully');
     }
 
     updateConfigFromForm() {
@@ -1140,12 +1136,6 @@ const CONFIG = {
 
         reader.readAsText(file);
     }
-}
-
-// Initialize the admin panel when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    window.adminPanel = new AdminPanel();
-});
 }
 
 // Initialize admin panel when DOM is loaded
