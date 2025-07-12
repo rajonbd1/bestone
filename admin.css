@@ -595,6 +595,25 @@ body {
     display: flex;
     gap: 0.5rem;
 }
+
+/* Export Section */
+.export-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+}
+
+.export-options {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.export-options .btn {
+    font-size: 0.85rem;
+}
 }
 
 .form-group input:focus,
