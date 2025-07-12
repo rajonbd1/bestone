@@ -1,7 +1,10 @@
-// Admin Panel JavaScript
+// Enhanced Admin Panel JavaScript - Version 2.0
 class AdminPanel {
     constructor() {
         this.currentConfig = this.getDefaultConfig();
+        this.validationRules = this.getValidationRules();
+        this.isInitialized = false;
+        this.debounceTimers = {};
         this.init();
     }
 
@@ -30,12 +33,178 @@ class AdminPanel {
         };
     }
 
-    init() {
-        this.loadConfiguration();
-        this.setupEventListeners();
-        this.setupNavigation();
-        this.loadProfiles();
-        this.updateConfigPreview();
+    getValidationRules() {
+        return {
+            redirectUrl: {
+                required: true,
+                type: 'url',
+                message: 'Please enter a valid URL'
+            },
+            ogTitle: {
+                required: true,
+                maxLength: 60,
+                message: 'Title is required and should be under 60 characters'
+            },
+            ogDescription: {
+                required: true,
+                maxLength: 160,
+                message: 'Description is required and should be under 160 characters'
+            },
+            ogUrl: {
+                required: true,
+                type: 'url',
+                message: 'Please enter a valid canonical URL'
+            },
+            ogImageUrl: {
+                type: 'url',
+                message: 'Please enter a valid image URL'
+            },
+            displayImageUrl: {
+                type: 'url',
+                message: 'Please enter a valid image URL'
+            },
+            redirectDelay: {
+                type: 'number',
+                min: 0,
+                max: 60,
+                message: 'Delay must be between 0 and 60 seconds'
+            },
+            redirectMessage: {
+                maxLength: 100,
+                message: 'Message should be under 100 characters'
+            },
+            pageTitle: {
+                maxLength: 60,
+                message: 'Title should be under 60 characters'
+            }
+        };
+    }
+
+    async init() {
+        try {
+            this.showLoadingOverlay();
+
+            // Initialize theme
+            this.initializeTheme();
+
+            // Load configuration
+            await this.loadConfiguration();
+
+            // Setup all event listeners
+            this.setupEventListeners();
+            this.setupNavigation();
+            this.setupThemeToggle();
+            this.setupHelpModal();
+            this.setupPreviewTabs();
+            this.setupValidation();
+
+            // Load profiles and update preview
+            this.loadProfiles();
+            this.updateConfigPreview();
+            this.updateAllPreviews();
+
+            this.isInitialized = true;
+            this.hideLoadingOverlay();
+
+            this.showToast('Admin panel loaded successfully!', 'success');
+        } catch (error) {
+            console.error('Error initializing admin panel:', error);
+            this.hideLoadingOverlay();
+            this.showToast('Error loading admin panel. Please refresh the page.', 'error');
+        }
+    }
+
+    // Theme Management
+    initializeTheme() {
+        const savedTheme = localStorage.getItem('adminPanelTheme') || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+        this.updateThemeIcon(savedTheme);
+    }
+
+    setupThemeToggle() {
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => this.toggleTheme());
+        }
+    }
+
+    toggleTheme() {
+        const currentTheme = document.body.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+        document.body.setAttribute('data-theme', newTheme);
+        localStorage.setItem('adminPanelTheme', newTheme);
+        this.updateThemeIcon(newTheme);
+
+        this.showToast(`Switched to ${newTheme} theme`, 'info');
+    }
+
+    updateThemeIcon(theme) {
+        const icon = document.querySelector('#themeToggle i');
+        if (icon) {
+            icon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+    }
+
+    // Loading Overlay
+    showLoadingOverlay() {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            overlay.classList.remove('hidden');
+        }
+    }
+
+    hideLoadingOverlay() {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 500);
+        }
+    }
+
+    // Toast Notifications
+    showToast(message, type = 'info', duration = 5000) {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+
+        const icons = {
+            success: 'fas fa-check-circle',
+            error: 'fas fa-exclamation-circle',
+            warning: 'fas fa-exclamation-triangle',
+            info: 'fas fa-info-circle'
+        };
+
+        toast.innerHTML = `
+            <i class="toast-icon ${icons[type] || icons.info}"></i>
+            <div class="toast-content">
+                <div class="toast-message">${message}</div>
+            </div>
+            <button class="toast-close">&times;</button>
+        `;
+
+        container.appendChild(toast);
+
+        // Show toast
+        setTimeout(() => toast.classList.add('show'), 100);
+
+        // Auto hide
+        const hideToast = () => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        };
+
+        setTimeout(hideToast, duration);
+
+        // Close button
+        toast.querySelector('.toast-close').addEventListener('click', hideToast);
     }
 
     setupEventListeners() {
@@ -47,7 +216,9 @@ class AdminPanel {
 
         // Preview modal
         document.getElementById('previewBtn').addEventListener('click', () => this.showPreview());
-        document.querySelector('.modal-close').addEventListener('click', () => this.hidePreview());
+
+        // Help modal
+        document.getElementById('helpBtn').addEventListener('click', () => this.showHelpModal());
 
         // Profile management
         document.getElementById('saveProfileBtn').addEventListener('click', () => this.saveProfile());
@@ -57,15 +228,367 @@ class AdminPanel {
         document.getElementById('exportJsonBtn').addEventListener('click', () => this.exportJson());
         document.getElementById('importFile').addEventListener('change', (e) => this.importConfig(e));
 
+        // Quick actions
+        const resetBasicBtn = document.getElementById('resetBasicBtn');
+        if (resetBasicBtn) {
+            resetBasicBtn.addEventListener('click', () => this.resetBasicSettings());
+        }
+
+        const validateBasicBtn = document.getElementById('validateBasicBtn');
+        if (validateBasicBtn) {
+            validateBasicBtn.addEventListener('click', () => this.validateAllFields());
+        }
+
+        // Image tools
+        const testImageBtn = document.getElementById('testImageBtn');
+        if (testImageBtn) {
+            testImageBtn.addEventListener('click', () => this.testImage());
+        }
+
+        const imageInfoBtn = document.getElementById('imageInfoBtn');
+        if (imageInfoBtn) {
+            imageInfoBtn.addEventListener('click', () => this.showImageInfo());
+        }
+
         // Real-time updates
         this.setupRealTimeUpdates();
 
-        // Modal click outside to close
-        document.getElementById('previewModal').addEventListener('click', (e) => {
-            if (e.target.id === 'previewModal') {
-                this.hidePreview();
+        // Modal event listeners
+        this.setupModalEventListeners();
+    }
+
+    setupModalEventListeners() {
+        // Close modals when clicking outside or on close button
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                this.hideAllModals();
+            }
+            if (e.target.classList.contains('modal-close')) {
+                this.hideAllModals();
             }
         });
+
+        // Close modals with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.hideAllModals();
+            }
+        });
+    }
+
+    setupValidation() {
+        // Setup real-time validation for all form fields
+        Object.keys(this.validationRules).forEach(fieldId => {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.addEventListener('blur', () => this.validateField(fieldId));
+                element.addEventListener('input', () => {
+                    this.debounceValidation(fieldId, 500);
+                    this.updateCharCounter(fieldId);
+                });
+            }
+        });
+
+        // Setup delay display update
+        const delayInput = document.getElementById('redirectDelay');
+        if (delayInput) {
+            delayInput.addEventListener('input', () => this.updateDelayDisplay());
+        }
+    }
+
+    debounceValidation(fieldId, delay) {
+        clearTimeout(this.debounceTimers[fieldId]);
+        this.debounceTimers[fieldId] = setTimeout(() => {
+            this.validateField(fieldId);
+        }, delay);
+    }
+
+    validateField(fieldId) {
+        const element = document.getElementById(fieldId);
+        const rules = this.validationRules[fieldId];
+        const formGroup = element.closest('.form-group');
+
+        if (!element || !rules || !formGroup) return true;
+
+        const value = element.value.trim();
+        let isValid = true;
+        let message = '';
+
+        // Required validation
+        if (rules.required && !value) {
+            isValid = false;
+            message = rules.message || 'This field is required';
+        }
+
+        // URL validation
+        if (isValid && value && rules.type === 'url') {
+            try {
+                new URL(value);
+            } catch {
+                isValid = false;
+                message = rules.message || 'Please enter a valid URL';
+            }
+        }
+
+        // Number validation
+        if (isValid && value && rules.type === 'number') {
+            const num = parseFloat(value);
+            if (isNaN(num)) {
+                isValid = false;
+                message = 'Please enter a valid number';
+            } else if (rules.min !== undefined && num < rules.min) {
+                isValid = false;
+                message = `Value must be at least ${rules.min}`;
+            } else if (rules.max !== undefined && num > rules.max) {
+                isValid = false;
+                message = `Value must be at most ${rules.max}`;
+            }
+        }
+
+        // Length validation
+        if (isValid && value && rules.maxLength && value.length > rules.maxLength) {
+            isValid = false;
+            message = `Must be under ${rules.maxLength} characters`;
+        }
+
+        // Update UI
+        formGroup.classList.toggle('valid', isValid && value);
+        formGroup.classList.toggle('invalid', !isValid);
+
+        const validationMessage = formGroup.querySelector('.validation-message');
+        if (validationMessage) {
+            validationMessage.textContent = message;
+        }
+
+        return isValid;
+    }
+
+    validateAllFields() {
+        let allValid = true;
+        Object.keys(this.validationRules).forEach(fieldId => {
+            if (!this.validateField(fieldId)) {
+                allValid = false;
+            }
+        });
+
+        if (allValid) {
+            this.showToast('All fields are valid!', 'success');
+        } else {
+            this.showToast('Please fix the validation errors', 'error');
+        }
+
+        return allValid;
+    }
+
+    updateCharCounter(fieldId) {
+        const element = document.getElementById(fieldId);
+        const counter = document.getElementById(fieldId.replace(/([A-Z])/g, '$1') + 'CharCount') ||
+                       document.getElementById(fieldId + 'CharCount');
+
+        if (element && counter) {
+            const length = element.value.length;
+            const maxLength = this.validationRules[fieldId]?.maxLength;
+
+            counter.textContent = length;
+
+            if (maxLength) {
+                const counterContainer = counter.closest('.char-counter');
+                if (counterContainer) {
+                    counterContainer.classList.toggle('warning', length > maxLength * 0.8);
+                    counterContainer.classList.toggle('danger', length > maxLength);
+                }
+            }
+        }
+    }
+
+    updateDelayDisplay() {
+        const delayInput = document.getElementById('redirectDelay');
+        const delayDisplay = document.getElementById('delayDisplay');
+
+        if (delayInput && delayDisplay) {
+            const delay = parseFloat(delayInput.value) || 0;
+            delayDisplay.textContent = `${delay.toFixed(1)}s`;
+        }
+    }
+
+    // Preview Tabs Management
+    setupPreviewTabs() {
+        const tabs = document.querySelectorAll('.preview-tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const platform = tab.getAttribute('data-platform');
+                this.switchPreviewPlatform(platform);
+            });
+        });
+    }
+
+    switchPreviewPlatform(platform) {
+        // Update tab states
+        document.querySelectorAll('.preview-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.getAttribute('data-platform') === platform);
+        });
+
+        // Update preview cards
+        document.querySelectorAll('.preview-card').forEach(card => {
+            card.classList.toggle('active', card.classList.contains(`${platform}-preview`));
+        });
+    }
+
+    // Help Modal Management
+    setupHelpModal() {
+        const helpTabs = document.querySelectorAll('.help-tab');
+        helpTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                this.switchHelpTab(tabId);
+            });
+        });
+    }
+
+    switchHelpTab(tabId) {
+        // Update tab states
+        document.querySelectorAll('.help-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.getAttribute('data-tab') === tabId);
+        });
+
+        // Update content sections
+        document.querySelectorAll('.help-section').forEach(section => {
+            section.classList.toggle('active', section.id === tabId);
+        });
+    }
+
+    showHelpModal() {
+        const modal = document.getElementById('helpModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+        }
+    }
+
+    hideAllModals() {
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+        });
+    }
+
+    // Quick Actions
+    resetBasicSettings() {
+        if (confirm('Are you sure you want to reset basic settings to defaults?')) {
+            const defaults = this.getDefaultConfig();
+
+            document.getElementById('redirectUrl').value = defaults.REDIRECT_URL;
+            document.getElementById('redirectDelay').value = defaults.REDIRECT_DELAY_MS / 1000;
+            document.getElementById('redirectMessage').value = defaults.REDIRECT_MESSAGE;
+            document.getElementById('pageTitle').value = defaults.PAGE_TITLE;
+
+            this.updateConfigFromForm();
+            this.updateConfigPreview();
+            this.updateAllPreviews();
+            this.updateDelayDisplay();
+
+            // Validate all fields
+            ['redirectUrl', 'redirectDelay', 'redirectMessage', 'pageTitle'].forEach(fieldId => {
+                this.validateField(fieldId);
+                this.updateCharCounter(fieldId);
+            });
+
+            this.showToast('Basic settings reset to defaults', 'success');
+        }
+    }
+
+    // Image Tools
+    async testImage() {
+        const imageUrl = document.getElementById('ogImageUrl').value.trim();
+        if (!imageUrl) {
+            this.showToast('Please enter an image URL first', 'warning');
+            return;
+        }
+
+        try {
+            const img = new Image();
+            img.onload = () => {
+                this.showToast(`Image loaded successfully! Size: ${img.width}x${img.height}px`, 'success');
+            };
+            img.onerror = () => {
+                this.showToast('Failed to load image. Please check the URL.', 'error');
+            };
+            img.src = imageUrl;
+        } catch (error) {
+            this.showToast('Error testing image: ' + error.message, 'error');
+        }
+    }
+
+    async showImageInfo() {
+        const imageUrl = document.getElementById('ogImageUrl').value.trim();
+        if (!imageUrl) {
+            this.showToast('Please enter an image URL first', 'warning');
+            return;
+        }
+
+        const modal = document.getElementById('imageInfoModal');
+        const content = document.getElementById('imageInfoContent');
+
+        if (!modal || !content) return;
+
+        modal.style.display = 'flex';
+        modal.classList.add('show');
+
+        content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading image information...</div>';
+
+        try {
+            const img = new Image();
+            img.onload = () => {
+                const fileSize = this.estimateImageSize(img.width, img.height);
+                const aspectRatio = (img.width / img.height).toFixed(2);
+                const isOptimal = img.width >= 1200 && img.height >= 630;
+
+                content.innerHTML = `
+                    <div class="image-info">
+                        <div class="image-preview-container">
+                            <img src="${imageUrl}" alt="Preview" style="max-width: 100%; height: auto; border-radius: 8px;">
+                        </div>
+                        <div class="image-details">
+                            <h4>Image Information</h4>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <strong>Dimensions:</strong> ${img.width} × ${img.height} pixels
+                                </div>
+                                <div class="info-item">
+                                    <strong>Aspect Ratio:</strong> ${aspectRatio}:1
+                                </div>
+                                <div class="info-item">
+                                    <strong>Estimated Size:</strong> ${fileSize}
+                                </div>
+                                <div class="info-item">
+                                    <strong>Social Media Optimal:</strong>
+                                    <span class="${isOptimal ? 'text-success' : 'text-warning'}">
+                                        ${isOptimal ? 'Yes' : 'No (recommended: 1200×630px)'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+            img.onerror = () => {
+                content.innerHTML = '<div class="error">Failed to load image. Please check the URL.</div>';
+            };
+            img.src = imageUrl;
+        } catch (error) {
+            content.innerHTML = `<div class="error">Error loading image: ${error.message}</div>`;
+        }
+    }
+
+    estimateImageSize(width, height) {
+        // Rough estimation based on dimensions
+        const pixels = width * height;
+        const estimatedBytes = pixels * 3; // Rough estimate for compressed image
+
+        if (estimatedBytes < 1024) return `${estimatedBytes} bytes`;
+        if (estimatedBytes < 1024 * 1024) return `${(estimatedBytes / 1024).toFixed(1)} KB`;
+        return `${(estimatedBytes / (1024 * 1024)).toFixed(1)} MB`;
     }
 
     setupNavigation() {
@@ -101,19 +624,64 @@ class AdminPanel {
         inputs.forEach(inputId => {
             const element = document.getElementById(inputId);
             if (element) {
-                element.addEventListener('input', () => {
+                const updateHandler = () => {
                     this.updateConfigFromForm();
                     this.updateConfigPreview();
-                });
-                
+                    this.updateAllPreviews();
+                };
+
+                element.addEventListener('input', updateHandler);
+
                 if (element.type === 'checkbox') {
-                    element.addEventListener('change', () => {
-                        this.updateConfigFromForm();
-                        this.updateConfigPreview();
-                    });
+                    element.addEventListener('change', updateHandler);
                 }
             }
         });
+    }
+
+    updateAllPreviews() {
+        this.updatePreviewCard('facebook');
+        this.updatePreviewCard('twitter');
+        this.updatePreviewCard('linkedin');
+    }
+
+    updatePreviewCard(platform) {
+        const config = this.currentConfig;
+        const suffix = platform === 'facebook' ? 'Fb' : platform === 'twitter' ? 'Tw' : 'Li';
+
+        const titleElement = document.getElementById(`previewTitle${suffix}`);
+        const descElement = document.getElementById(`previewDescription${suffix}`);
+        const urlElement = document.getElementById(`previewUrl${suffix}`);
+        const imgElement = document.getElementById(`previewImg${suffix}`);
+
+        if (titleElement) {
+            titleElement.textContent = config.OG_TITLE || 'Your Title Here';
+        }
+
+        if (descElement) {
+            descElement.textContent = config.OG_DESCRIPTION || 'Your description will appear here...';
+        }
+
+        if (urlElement) {
+            try {
+                const url = new URL(config.OG_URL || 'https://yourdomain.com');
+                urlElement.textContent = url.hostname;
+            } catch {
+                urlElement.textContent = 'yourdomain.com';
+            }
+        }
+
+        if (imgElement) {
+            const placeholder = imgElement.nextElementSibling;
+            if (config.OG_IMAGE_URL) {
+                imgElement.src = config.OG_IMAGE_URL;
+                imgElement.style.display = 'block';
+                if (placeholder) placeholder.style.display = 'none';
+            } else {
+                imgElement.style.display = 'none';
+                if (placeholder) placeholder.style.display = 'flex';
+            }
+        }
     }
 
     loadConfiguration() {
@@ -187,80 +755,139 @@ class AdminPanel {
         };
     }
 
-    saveConfiguration() {
-        this.updateConfigFromForm();
+    async saveConfiguration() {
+        try {
+            this.updateConfigFromForm();
 
-        // Validate configuration
-        if (!this.validateConfig()) {
-            return;
+            // Enhanced validation
+            if (!this.validateAllFields() || !this.validateConfig()) {
+                this.showToast('Please fix all validation errors before saving', 'error');
+                return;
+            }
+
+            // Show loading state
+            const saveBtn = document.getElementById('saveBtn');
+            const originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            saveBtn.disabled = true;
+
+            // Save to localStorage
+            localStorage.setItem('redirectPageConfig', JSON.stringify(this.currentConfig));
+
+            // Generate and save config.js file
+            this.generateConfigFile();
+
+            // Auto-download the config.js file
+            this.exportConfig();
+
+            // Success feedback
+            this.showToast('Configuration saved successfully! Config file downloaded.', 'success');
+
+            // Reset button
+            setTimeout(() => {
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            }, 1000);
+
+        } catch (error) {
+            console.error('Error saving configuration:', error);
+            this.showToast('Error saving configuration: ' + error.message, 'error');
+
+            // Reset button
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> Save & Download';
+            saveBtn.disabled = false;
         }
-
-        // Save to localStorage
-        localStorage.setItem('redirectPageConfig', JSON.stringify(this.currentConfig));
-
-        // Generate and save config.js file
-        this.generateConfigFile();
-
-        // Auto-download the config.js file
-        this.exportConfig();
-
-        this.showMessage('Configuration saved! The config.js file has been downloaded. Please replace the existing config.js file in your repository and push the changes to GitHub.', 'success');
     }
 
-    testConfiguration() {
-        this.updateConfigFromForm();
+    async testConfiguration() {
+        try {
+            this.updateConfigFromForm();
 
-        // Validate configuration
-        if (!this.validateConfig()) {
-            return;
+            // Enhanced validation
+            if (!this.validateAllFields() || !this.validateConfig()) {
+                this.showToast('Please fix all validation errors before testing', 'error');
+                return;
+            }
+
+            // Show loading state
+            const testBtn = document.getElementById('testBtn');
+            const originalText = testBtn.innerHTML;
+            testBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+            testBtn.disabled = true;
+
+            // Save to localStorage so the redirect page can use it
+            localStorage.setItem('redirectPageConfig', JSON.stringify(this.currentConfig));
+
+            // Create test URL with parameters as backup
+            const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '');
+            const testUrl = `${baseUrl}?url=${encodeURIComponent(this.currentConfig.REDIRECT_URL)}&delay=${this.currentConfig.REDIRECT_DELAY_MS / 1000}`;
+
+            // Open in new tab for testing
+            const testWindow = window.open(testUrl, '_blank');
+
+            if (testWindow) {
+                this.showToast('Test page opened in new tab!', 'success');
+            } else {
+                this.showToast('Please allow popups to test the configuration', 'warning');
+            }
+
+            // Reset button
+            setTimeout(() => {
+                testBtn.innerHTML = originalText;
+                testBtn.disabled = false;
+            }, 1000);
+
+        } catch (error) {
+            console.error('Error testing configuration:', error);
+            this.showToast('Error testing configuration: ' + error.message, 'error');
+
+            // Reset button
+            const testBtn = document.getElementById('testBtn');
+            testBtn.innerHTML = '<i class="fas fa-play"></i> Test Now';
+            testBtn.disabled = false;
         }
-
-        // Save to localStorage so the redirect page can use it
-        localStorage.setItem('redirectPageConfig', JSON.stringify(this.currentConfig));
-
-        // Create test URL with parameters as backup
-        const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '');
-        const testUrl = `${baseUrl}?url=${encodeURIComponent(this.currentConfig.REDIRECT_URL)}&delay=${this.currentConfig.REDIRECT_DELAY_MS / 1000}`;
-
-        // Open in new tab for testing
-        window.open(testUrl, '_blank');
-
-        this.showMessage('Test page opened in new tab! The redirect page will use your current settings.', 'success');
     }
 
     validateConfig() {
         const config = this.currentConfig;
-        
+
         if (!config.REDIRECT_URL) {
-            this.showMessage('Redirect URL is required!', 'error');
+            this.showToast('Redirect URL is required!', 'error');
             return false;
         }
-        
+
         try {
             new URL(config.REDIRECT_URL);
         } catch (e) {
-            this.showMessage('Invalid redirect URL format!', 'error');
+            this.showToast('Invalid redirect URL format!', 'error');
             return false;
         }
-        
+
         if (config.OG_IMAGE_URL) {
             try {
                 new URL(config.OG_IMAGE_URL);
             } catch (e) {
-                this.showMessage('Invalid social media image URL format!', 'error');
+                this.showToast('Invalid social media image URL format!', 'error');
                 return false;
             }
         }
-        
+
         if (config.DISPLAY_IMAGE_URL) {
             try {
                 new URL(config.DISPLAY_IMAGE_URL);
             } catch (e) {
-                this.showMessage('Invalid display image URL format!', 'error');
+                this.showToast('Invalid display image URL format!', 'error');
                 return false;
             }
         }
-        
+
+        // Additional security validation
+        if (config.SECURITY?.httpsOnly && !config.REDIRECT_URL.startsWith('https://')) {
+            this.showToast('HTTPS-only mode requires HTTPS redirect URL!', 'error');
+            return false;
+        }
+
         return true;
     }
 
@@ -322,23 +949,29 @@ const CONFIG = {
     saveProfile() {
         const profileName = document.getElementById('profileName').value.trim();
         if (!profileName) {
-            this.showMessage('Please enter a profile name!', 'error');
+            this.showToast('Please enter a profile name!', 'error');
             return;
         }
-        
+
         this.updateConfigFromForm();
-        
+
+        // Validate before saving
+        if (!this.validateAllFields()) {
+            this.showToast('Please fix validation errors before saving profile', 'error');
+            return;
+        }
+
         const profiles = JSON.parse(localStorage.getItem('redirectPageProfiles') || '{}');
         profiles[profileName] = {
             config: this.currentConfig,
             created: new Date().toISOString()
         };
-        
+
         localStorage.setItem('redirectPageProfiles', JSON.stringify(profiles));
         document.getElementById('profileName').value = '';
-        
+
         this.loadProfiles();
-        this.showMessage(`Profile "${profileName}" saved successfully!`, 'success');
+        this.showToast(`Profile "${profileName}" saved successfully!`, 'success');
     }
 
     loadProfiles() {
@@ -374,7 +1007,16 @@ const CONFIG = {
             this.currentConfig = profiles[profileName].config;
             this.updateFormFromConfig();
             this.updateConfigPreview();
-            this.showMessage(`Profile "${profileName}" loaded successfully!`, 'success');
+            this.updateAllPreviews();
+            this.updateDelayDisplay();
+
+            // Revalidate all fields
+            Object.keys(this.validationRules).forEach(fieldId => {
+                this.validateField(fieldId);
+                this.updateCharCounter(fieldId);
+            });
+
+            this.showToast(`Profile "${profileName}" loaded successfully!`, 'success');
         }
     }
 
@@ -384,7 +1026,7 @@ const CONFIG = {
             delete profiles[profileName];
             localStorage.setItem('redirectPageProfiles', JSON.stringify(profiles));
             this.loadProfiles();
-            this.showMessage(`Profile "${profileName}" deleted successfully!`, 'success');
+            this.showToast(`Profile "${profileName}" deleted successfully!`, 'success');
         }
     }
 
@@ -437,36 +1079,30 @@ const CONFIG = {
                 this.currentConfig = { ...this.getDefaultConfig(), ...config };
                 this.updateFormFromConfig();
                 this.updateConfigPreview();
-                this.showMessage('Configuration imported successfully!', 'success');
-                
+                this.updateAllPreviews();
+                this.updateDelayDisplay();
+
+                // Revalidate all fields
+                Object.keys(this.validationRules).forEach(fieldId => {
+                    this.validateField(fieldId);
+                    this.updateCharCounter(fieldId);
+                });
+
+                this.showToast('Configuration imported successfully!', 'success');
+
             } catch (error) {
-                this.showMessage('Error importing configuration: ' + error.message, 'error');
+                this.showToast('Error importing configuration: ' + error.message, 'error');
             }
         };
-        
+
         reader.readAsText(file);
     }
+}
 
-    showMessage(message, type) {
-        // Remove existing messages
-        const existingMessages = document.querySelectorAll('.message');
-        existingMessages.forEach(msg => msg.remove());
-        
-        // Create new message
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${type} show`;
-        messageDiv.textContent = message;
-        
-        // Insert at the top of main content
-        const mainContent = document.querySelector('.main-content');
-        mainContent.insertBefore(messageDiv, mainContent.firstChild);
-        
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-            messageDiv.classList.remove('show');
-            setTimeout(() => messageDiv.remove(), 300);
-        }, 5000);
-    }
+// Initialize the admin panel when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    window.adminPanel = new AdminPanel();
+});
 }
 
 // Initialize admin panel when DOM is loaded

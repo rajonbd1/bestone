@@ -6,12 +6,34 @@
     <title>Redirect Page Admin Panel</title>
     <link rel="stylesheet" href="admin.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="theme-color" content="#667eea">
+    <meta name="description" content="Advanced admin panel for managing redirect page configurations">
 </head>
-<body>
+<body data-theme="light">
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading Admin Panel...</p>
+        </div>
+    </div>
+
+    <!-- Success/Error Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
     <div class="admin-container">
         <header class="admin-header">
-            <h1><i class="fas fa-cog"></i> Redirect Page Admin Panel</h1>
+            <div class="header-left">
+                <h1><i class="fas fa-cog"></i> Redirect Page Admin Panel</h1>
+                <span class="version-badge">v2.0</span>
+            </div>
             <div class="header-actions">
+                <button id="themeToggle" class="btn btn-icon" title="Toggle Dark/Light Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button id="helpBtn" class="btn btn-icon" title="Help & Documentation">
+                    <i class="fas fa-question-circle"></i>
+                </button>
                 <button id="testBtn" class="btn btn-success">
                     <i class="fas fa-play"></i> Test Now
                 </button>
@@ -50,97 +72,272 @@
             <main class="main-content">
                 <!-- Basic Settings Section -->
                 <section id="basic" class="config-section active">
-                    <h2>Basic Settings</h2>
+                    <div class="section-header">
+                        <h2><i class="fas fa-home"></i> Basic Settings</h2>
+                        <p class="section-description">Configure the core redirect functionality and user experience</p>
+                    </div>
+
                     <div class="form-group">
-                        <label for="redirectUrl">
+                        <label for="redirectUrl" class="required">
                             <i class="fas fa-external-link-alt"></i> Redirect URL
+                            <span class="tooltip" data-tooltip="The destination URL where users will be redirected">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
                         </label>
-                        <input type="url" id="redirectUrl" placeholder="https://example.com" required>
-                        <small>Where users will be redirected after the delay</small>
+                        <div class="input-wrapper">
+                            <input type="url" id="redirectUrl" placeholder="https://example.com" required>
+                            <div class="input-status">
+                                <i class="fas fa-check-circle success-icon"></i>
+                                <i class="fas fa-exclamation-circle error-icon"></i>
+                            </div>
+                        </div>
+                        <small class="help-text">Where users will be redirected after the delay</small>
+                        <div class="validation-message"></div>
                     </div>
 
                     <div class="form-group">
                         <label for="redirectDelay">
                             <i class="fas fa-clock"></i> Redirect Delay (seconds)
+                            <span class="tooltip" data-tooltip="Delay before redirect (0-60 seconds). Longer delays give social crawlers more time to scan.">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
                         </label>
-                        <input type="number" id="redirectDelay" min="0" max="60" step="0.5" value="2">
-                        <small>How long to wait before redirecting (0-60 seconds)</small>
+                        <div class="input-wrapper">
+                            <input type="number" id="redirectDelay" min="0" max="60" step="0.5" value="2">
+                            <div class="input-status">
+                                <i class="fas fa-check-circle success-icon"></i>
+                                <i class="fas fa-exclamation-circle error-icon"></i>
+                            </div>
+                        </div>
+                        <small class="help-text">How long to wait before redirecting (0-60 seconds)</small>
+                        <div class="validation-message"></div>
+                        <div class="delay-preview">
+                            <span class="delay-indicator">Current delay: <strong id="delayDisplay">2.0s</strong></span>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label for="redirectMessage">
                             <i class="fas fa-comment"></i> Redirect Message
+                            <span class="tooltip" data-tooltip="Message displayed to users while waiting for redirect">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
                         </label>
-                        <input type="text" id="redirectMessage" placeholder="Redirecting you shortly...">
-                        <small>Message shown to users while waiting</small>
+                        <div class="input-wrapper">
+                            <input type="text" id="redirectMessage" placeholder="Redirecting you shortly..." maxlength="100">
+                            <div class="input-status">
+                                <i class="fas fa-check-circle success-icon"></i>
+                            </div>
+                        </div>
+                        <small class="help-text">Message shown to users while waiting</small>
+                        <div class="char-counter">
+                            <span id="messageCharCount">0</span>/100 characters
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label for="pageTitle">
                             <i class="fas fa-heading"></i> Page Title
+                            <span class="tooltip" data-tooltip="Title shown in browser tab and search results">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
                         </label>
-                        <input type="text" id="pageTitle" placeholder="Redirecting...">
-                        <small>Title shown in browser tab</small>
+                        <div class="input-wrapper">
+                            <input type="text" id="pageTitle" placeholder="Redirecting..." maxlength="60">
+                            <div class="input-status">
+                                <i class="fas fa-check-circle success-icon"></i>
+                            </div>
+                        </div>
+                        <small class="help-text">Title shown in browser tab</small>
+                        <div class="char-counter">
+                            <span id="titleCharCount">0</span>/60 characters
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="quick-actions">
+                        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                        <div class="action-buttons">
+                            <button type="button" class="btn btn-outline" id="resetBasicBtn">
+                                <i class="fas fa-undo"></i> Reset to Defaults
+                            </button>
+                            <button type="button" class="btn btn-outline" id="validateBasicBtn">
+                                <i class="fas fa-check-double"></i> Validate Settings
+                            </button>
+                        </div>
                     </div>
                 </section>
 
                 <!-- Social Media Section -->
                 <section id="social" class="config-section">
-                    <h2>Social Media Settings</h2>
-                    <div class="form-group">
-                        <label for="ogTitle">
-                            <i class="fas fa-heading"></i> Social Media Title
-                        </label>
-                        <input type="text" id="ogTitle" placeholder="Amazing offer!">
-                        <small>Title shown when shared on social media</small>
+                    <div class="section-header">
+                        <h2><i class="fas fa-share-alt"></i> Social Media Settings</h2>
+                        <p class="section-description">Configure how your link appears when shared on social platforms</p>
                     </div>
 
                     <div class="form-group">
-                        <label for="ogDescription">
-                            <i class="fas fa-align-left"></i> Social Media Description
+                        <label for="ogTitle" class="required">
+                            <i class="fas fa-heading"></i> Social Media Title
+                            <span class="tooltip" data-tooltip="Title displayed when shared on Facebook, Twitter, LinkedIn, etc.">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
                         </label>
-                        <textarea id="ogDescription" placeholder="Check out this amazing offer..." rows="3"></textarea>
-                        <small>Description shown when shared on social media</small>
+                        <div class="input-wrapper">
+                            <input type="text" id="ogTitle" placeholder="Amazing offer!" maxlength="60">
+                            <div class="input-status">
+                                <i class="fas fa-check-circle success-icon"></i>
+                                <i class="fas fa-exclamation-circle error-icon"></i>
+                            </div>
+                        </div>
+                        <small class="help-text">Title shown when shared on social media</small>
+                        <div class="char-counter">
+                            <span id="ogTitleCharCount">0</span>/60 characters
+                        </div>
+                        <div class="validation-message"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ogDescription" class="required">
+                            <i class="fas fa-align-left"></i> Social Media Description
+                            <span class="tooltip" data-tooltip="Description displayed when shared. Keep it engaging and under 160 characters.">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
+                        </label>
+                        <div class="input-wrapper">
+                            <textarea id="ogDescription" placeholder="Check out this amazing offer..." rows="3" maxlength="160"></textarea>
+                            <div class="input-status">
+                                <i class="fas fa-check-circle success-icon"></i>
+                                <i class="fas fa-exclamation-circle error-icon"></i>
+                            </div>
+                        </div>
+                        <small class="help-text">Description shown when shared on social media</small>
+                        <div class="char-counter">
+                            <span id="ogDescCharCount">0</span>/160 characters
+                        </div>
+                        <div class="validation-message"></div>
                     </div>
 
                     <div class="form-group">
                         <label for="ogImageUrl">
                             <i class="fas fa-image"></i> Social Media Image URL
+                            <span class="tooltip" data-tooltip="Image displayed when shared. Recommended size: 1200x630px for best results.">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
                         </label>
-                        <input type="url" id="ogImageUrl" placeholder="https://example.com/image.jpg">
-                        <small>Image shown when shared on social media (recommended: 1200x630px)</small>
+                        <div class="input-wrapper">
+                            <input type="url" id="ogImageUrl" placeholder="https://example.com/image.jpg">
+                            <div class="input-status">
+                                <i class="fas fa-check-circle success-icon"></i>
+                                <i class="fas fa-exclamation-circle error-icon"></i>
+                            </div>
+                        </div>
+                        <small class="help-text">Image shown when shared on social media (recommended: 1200x630px)</small>
+                        <div class="validation-message"></div>
+                        <div class="image-tools">
+                            <button type="button" class="btn btn-sm btn-outline" id="testImageBtn">
+                                <i class="fas fa-eye"></i> Test Image
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline" id="imageInfoBtn">
+                                <i class="fas fa-info"></i> Get Image Info
+                            </button>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label for="displayImageUrl">
                             <i class="fas fa-picture-o"></i> Display Image URL
+                            <span class="tooltip" data-tooltip="Image shown on the actual redirect page (can be different from social media image)">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
                         </label>
-                        <input type="url" id="displayImageUrl" placeholder="https://example.com/display-image.jpg">
-                        <small>Image displayed on the redirect page itself</small>
+                        <div class="input-wrapper">
+                            <input type="url" id="displayImageUrl" placeholder="https://example.com/display-image.jpg">
+                            <div class="input-status">
+                                <i class="fas fa-check-circle success-icon"></i>
+                                <i class="fas fa-exclamation-circle error-icon"></i>
+                            </div>
+                        </div>
+                        <small class="help-text">Image displayed on the redirect page itself</small>
+                        <div class="validation-message"></div>
                     </div>
 
                     <div class="form-group">
-                        <label for="ogUrl">
+                        <label for="ogUrl" class="required">
                             <i class="fas fa-link"></i> Canonical URL
+                            <span class="tooltip" data-tooltip="The canonical URL of your redirect page (your GitHub Pages URL)">
+                                <i class="fas fa-info-circle"></i>
+                            </span>
                         </label>
-                        <input type="url" id="ogUrl" placeholder="https://yourdomain.github.io/yourrepo/">
-                        <small>The canonical URL of your redirect page</small>
+                        <div class="input-wrapper">
+                            <input type="url" id="ogUrl" placeholder="https://yourdomain.github.io/yourrepo/">
+                            <div class="input-status">
+                                <i class="fas fa-check-circle success-icon"></i>
+                                <i class="fas fa-exclamation-circle error-icon"></i>
+                            </div>
+                        </div>
+                        <small class="help-text">The canonical URL of your redirect page</small>
+                        <div class="validation-message"></div>
                     </div>
 
+                    <!-- Enhanced Social Media Preview -->
                     <div class="social-preview">
-                        <h3><i class="fas fa-eye"></i> Social Media Preview</h3>
-                        <div class="preview-card">
-                            <div class="preview-image">
-                                <img id="previewImg" src="" alt="Preview" style="display: none;">
-                                <div class="preview-placeholder">
-                                    <i class="fas fa-image"></i>
-                                    <span>Image Preview</span>
+                        <h3><i class="fas fa-eye"></i> Live Social Media Preview</h3>
+                        <div class="preview-tabs">
+                            <button class="preview-tab active" data-platform="facebook">
+                                <i class="fab fa-facebook"></i> Facebook
+                            </button>
+                            <button class="preview-tab" data-platform="twitter">
+                                <i class="fab fa-twitter"></i> Twitter
+                            </button>
+                            <button class="preview-tab" data-platform="linkedin">
+                                <i class="fab fa-linkedin"></i> LinkedIn
+                            </button>
+                        </div>
+
+                        <div class="preview-container">
+                            <div class="preview-card facebook-preview active">
+                                <div class="preview-image">
+                                    <img id="previewImgFb" src="" alt="Preview" style="display: none;">
+                                    <div class="preview-placeholder">
+                                        <i class="fas fa-image"></i>
+                                        <span>Image Preview</span>
+                                    </div>
+                                </div>
+                                <div class="preview-content">
+                                    <h4 id="previewTitleFb">Your Title Here</h4>
+                                    <p id="previewDescriptionFb">Your description will appear here...</p>
+                                    <span id="previewUrlFb" class="preview-url">yourdomain.com</span>
                                 </div>
                             </div>
-                            <div class="preview-content">
-                                <h4 id="previewTitle">Your Title Here</h4>
-                                <p id="previewDescription">Your description will appear here...</p>
-                                <span id="previewUrl" class="preview-url">yourdomain.com</span>
+
+                            <div class="preview-card twitter-preview">
+                                <div class="preview-content">
+                                    <h4 id="previewTitleTw">Your Title Here</h4>
+                                    <p id="previewDescriptionTw">Your description will appear here...</p>
+                                    <span id="previewUrlTw" class="preview-url">yourdomain.com</span>
+                                </div>
+                                <div class="preview-image">
+                                    <img id="previewImgTw" src="" alt="Preview" style="display: none;">
+                                    <div class="preview-placeholder">
+                                        <i class="fas fa-image"></i>
+                                        <span>Image Preview</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="preview-card linkedin-preview">
+                                <div class="preview-image">
+                                    <img id="previewImgLi" src="" alt="Preview" style="display: none;">
+                                    <div class="preview-placeholder">
+                                        <i class="fas fa-image"></i>
+                                        <span>Image Preview</span>
+                                    </div>
+                                </div>
+                                <div class="preview-content">
+                                    <h4 id="previewTitleLi">Your Title Here</h4>
+                                    <p id="previewDescriptionLi">Your description will appear here...</p>
+                                    <span id="previewUrlLi" class="preview-url">yourdomain.com</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -283,6 +480,97 @@
                                     <p id="modalPreviewDescription">Your description will appear here...</p>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Modal -->
+        <div id="helpModal" class="modal">
+            <div class="modal-content large">
+                <div class="modal-header">
+                    <h3><i class="fas fa-question-circle"></i> Help & Documentation</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="help-tabs">
+                        <button class="help-tab active" data-tab="getting-started">Getting Started</button>
+                        <button class="help-tab" data-tab="best-practices">Best Practices</button>
+                        <button class="help-tab" data-tab="troubleshooting">Troubleshooting</button>
+                        <button class="help-tab" data-tab="faq">FAQ</button>
+                    </div>
+
+                    <div class="help-content">
+                        <div id="getting-started" class="help-section active">
+                            <h4>Getting Started</h4>
+                            <ol>
+                                <li><strong>Basic Setup:</strong> Fill in your redirect URL and configure the delay time.</li>
+                                <li><strong>Social Media:</strong> Add title, description, and image for social sharing.</li>
+                                <li><strong>Test:</strong> Use the "Test Now" button to preview your redirect page.</li>
+                                <li><strong>Save:</strong> Click "Save & Download" to get your config.js file.</li>
+                                <li><strong>Deploy:</strong> Replace the config.js in your repository and push to GitHub.</li>
+                            </ol>
+                        </div>
+
+                        <div id="best-practices" class="help-section">
+                            <h4>Best Practices</h4>
+                            <ul>
+                                <li><strong>Image Size:</strong> Use 1200x630px images for optimal social media display</li>
+                                <li><strong>Title Length:</strong> Keep titles under 60 characters for best visibility</li>
+                                <li><strong>Description:</strong> Write compelling descriptions under 160 characters</li>
+                                <li><strong>Delay Time:</strong> 2-3 seconds is optimal for social crawlers</li>
+                                <li><strong>Testing:</strong> Always test your links before sharing</li>
+                            </ul>
+                        </div>
+
+                        <div id="troubleshooting" class="help-section">
+                            <h4>Troubleshooting</h4>
+                            <div class="troubleshoot-item">
+                                <h5>Social media not showing preview?</h5>
+                                <p>Make sure your image URLs are publicly accessible and your canonical URL is correct.</p>
+                            </div>
+                            <div class="troubleshoot-item">
+                                <h5>Redirect not working?</h5>
+                                <p>Check that your redirect URL is valid and accessible. Ensure HTTPS if security is enabled.</p>
+                            </div>
+                            <div class="troubleshoot-item">
+                                <h5>Changes not appearing?</h5>
+                                <p>Make sure you've replaced the config.js file in your repository and pushed the changes.</p>
+                            </div>
+                        </div>
+
+                        <div id="faq" class="help-section">
+                            <h4>Frequently Asked Questions</h4>
+                            <div class="faq-item">
+                                <h5>Can I use this for commercial purposes?</h5>
+                                <p>Yes, this tool is free to use for both personal and commercial projects.</p>
+                            </div>
+                            <div class="faq-item">
+                                <h5>How do I update my configuration?</h5>
+                                <p>Simply make changes in the admin panel, save, and replace your config.js file.</p>
+                            </div>
+                            <div class="faq-item">
+                                <h5>Can I have multiple redirect pages?</h5>
+                                <p>Yes, you can create multiple configurations using the Profiles feature.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Info Modal -->
+        <div id="imageInfoModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-info-circle"></i> Image Information</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="imageInfoContent">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i> Loading image information...
                         </div>
                     </div>
                 </div>
