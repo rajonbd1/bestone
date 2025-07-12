@@ -24,20 +24,6 @@
             </div>
         </header>
 
-        <!-- Important Notice -->
-        <div class="notice-banner">
-            <div class="notice-content">
-                <i class="fas fa-info-circle"></i>
-                <div>
-                    <strong>How to Apply Changes:</strong>
-                    <p>1. Click "Save & Download" to get the new config.js file</p>
-                    <p>2. Replace the config.js file in your repository</p>
-                    <p>3. Commit and push to GitHub for changes to take effect</p>
-                    <p><strong>OR</strong> Click "Test Now" to test your changes immediately!</p>
-                </div>
-            </div>
-        </div>
-
         <div class="admin-content">
             <div class="sidebar">
                 <nav class="admin-nav">
@@ -105,16 +91,16 @@
                         <label for="ogTitle">
                             <i class="fas fa-heading"></i> Social Media Title
                         </label>
-                        <input type="text" id="ogTitle" placeholder="Your Awesome Content!" maxlength="60">
-                        <small>Title when shared on social media (max 60 characters)</small>
+                        <input type="text" id="ogTitle" placeholder="Amazing offer!">
+                        <small>Title shown when shared on social media</small>
                     </div>
 
                     <div class="form-group">
                         <label for="ogDescription">
                             <i class="fas fa-align-left"></i> Social Media Description
                         </label>
-                        <textarea id="ogDescription" placeholder="Amazing content that you should check out!" maxlength="160" rows="3"></textarea>
-                        <small>Description when shared on social media (max 160 characters)</small>
+                        <textarea id="ogDescription" placeholder="Check out this amazing offer..." rows="3"></textarea>
+                        <small>Description shown when shared on social media</small>
                     </div>
 
                     <div class="form-group">
@@ -122,7 +108,7 @@
                             <i class="fas fa-image"></i> Social Media Image URL
                         </label>
                         <input type="url" id="ogImageUrl" placeholder="https://example.com/image.jpg">
-                        <small>Image shown when shared on social media (1200x630px recommended)</small>
+                        <small>Image shown when shared on social media (recommended: 1200x630px)</small>
                     </div>
 
                     <div class="form-group">
@@ -130,7 +116,7 @@
                             <i class="fas fa-picture-o"></i> Display Image URL
                         </label>
                         <input type="url" id="displayImageUrl" placeholder="https://example.com/display-image.jpg">
-                        <small>Image shown on the redirect page itself</small>
+                        <small>Image displayed on the redirect page itself</small>
                     </div>
 
                     <div class="form-group">
@@ -138,11 +124,29 @@
                             <i class="fas fa-link"></i> Canonical URL
                         </label>
                         <input type="url" id="ogUrl" placeholder="https://yourdomain.github.io/yourrepo/">
-                        <small>The URL of this redirect page (for social media)</small>
+                        <small>The canonical URL of your redirect page</small>
+                    </div>
+
+                    <div class="social-preview">
+                        <h3><i class="fas fa-eye"></i> Social Media Preview</h3>
+                        <div class="preview-card">
+                            <div class="preview-image">
+                                <img id="previewImg" src="" alt="Preview" style="display: none;">
+                                <div class="preview-placeholder">
+                                    <i class="fas fa-image"></i>
+                                    <span>Image Preview</span>
+                                </div>
+                            </div>
+                            <div class="preview-content">
+                                <h4 id="previewTitle">Your Title Here</h4>
+                                <p id="previewDescription">Your description will appear here...</p>
+                                <span id="previewUrl" class="preview-url">yourdomain.com</span>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
-                <!-- Advanced Settings Section -->
+                <!-- Advanced Section -->
                 <section id="advanced" class="config-section">
                     <h2>Advanced Settings</h2>
                     <div class="form-group">
@@ -152,19 +156,19 @@
                         <div class="checkbox-group">
                             <label class="checkbox-label">
                                 <input type="checkbox" id="detectFacebook" checked>
-                                <span>Facebook/Meta crawlers</span>
+                                <span>Facebook/Meta Crawlers</span>
                             </label>
                             <label class="checkbox-label">
                                 <input type="checkbox" id="detectTwitter">
-                                <span>Twitter/X crawlers</span>
+                                <span>Twitter/X Crawlers</span>
                             </label>
                             <label class="checkbox-label">
                                 <input type="checkbox" id="detectLinkedIn">
-                                <span>LinkedIn crawlers</span>
+                                <span>LinkedIn Crawlers</span>
                             </label>
                             <label class="checkbox-label">
                                 <input type="checkbox" id="detectGoogle">
-                                <span>Google crawlers</span>
+                                <span>Google Crawlers</span>
                             </label>
                         </div>
                         <small>Which social media crawlers should not be redirected</small>
@@ -266,15 +270,18 @@
                     <button class="modal-close">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div class="preview-container">
-                        <div class="social-preview">
-                            <div class="preview-image">
-                                <img id="previewImg" src="" alt="Preview">
-                            </div>
-                            <div class="preview-content">
-                                <h4 id="previewTitle"></h4>
-                                <p id="previewDescription"></p>
-                                <span id="previewUrl" class="preview-url"></span>
+                    <div class="preview-platforms">
+                        <div class="platform-preview facebook-preview">
+                            <h4><i class="fab fa-facebook"></i> Facebook</h4>
+                            <div class="preview-card large">
+                                <div class="preview-image">
+                                    <img id="modalPreviewImg" src="" alt="Preview">
+                                </div>
+                                <div class="preview-content">
+                                    <span class="preview-url" id="modalPreviewUrl">yourdomain.com</span>
+                                    <h4 id="modalPreviewTitle">Your Title Here</h4>
+                                    <p id="modalPreviewDescription">Your description will appear here...</p>
+                                </div>
                             </div>
                         </div>
                     </div>
